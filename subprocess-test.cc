@@ -67,7 +67,11 @@ const string kSortExecutable = "/usr/bin/sort";
 int main(int argc, char *argv[]) {
   try {
     char *argv[] = {const_cast<char *>(kSortExecutable.c_str()), NULL};
-    subprocess_t child = subprocess(argv, true, true);
+    //subprocess_t child = subprocess(argv, true, true);
+    //subprocess_t child = subprocess(argv, true, false);
+    //subprocess_t child = subprocess(argv, false, true);
+    subprocess_t child = subprocess(argv, false, false);
+    //cout << "child : " << child.supplyfd << endl;
     publishWordsToChild(child.supplyfd);
     ingestAndPublishWords(child.ingestfd);
     waitForChildProcess(child.pid);

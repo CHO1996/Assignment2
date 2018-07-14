@@ -29,9 +29,13 @@ static void markWorkersAsAvailable(int sig) {}
 // restore static keyword once you start using it, commented out to suppress compiler warning
 /* static */ const char *kWorkerArguments[] = {"./factor.py", "--self-halting", NULL};
 static void spawnAllWorkers() {
+    //do something here
+
   cout << "There are this many CPUs: " << kNumCPUs << ", numbered 0 through " << kNumCPUs - 1 << "." << endl;
   for (size_t i = 0; i < kNumCPUs; i++) {
-    // cout << "Worker " << workers[i].sp.pid << " is set to run on CPU " << i << "." << endl;
+      workers[i].sp = subprocess(workers[i].worker);
+      workers[i].available = true;
+      cout << "Worker " << workers[i].sp.pid << " is set to run on CPU " << i << "." << endl;
   }
 }
 
