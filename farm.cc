@@ -44,7 +44,7 @@ static void spawnAllWorkers() {
       workers[i] = worker(argv);
       //cout << "This is to test if subprocess changed or not " << workers[i].sp.supplyfd << endl;
       
-      cout << "Worker " << workers[i].sp.pid << " is set to run on CPU " << i << "." << " is it free? " << workers[i].available  << endl;
+      cout << "Worker " << workers[i].sp.pid << " is set to run on CPU " << i << "."  << endl;
   }
 }
 
