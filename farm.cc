@@ -24,7 +24,9 @@ static const size_t kNumCPUs = sysconf(_SC_NPROCESSORS_ONLN);
 /* static */ vector<worker> workers(kNumCPUs);
 /* static */ size_t numWorkersAvailable = 0;
 
-static void markWorkersAsAvailable(int sig) {}
+static void markWorkersAsAvailable(int sig) {
+
+}
 
 // restore static keyword once you start using it, commented out to suppress compiler warning
 /* static */ const char *kWorkerArguments[] = {"./factor.py", "--self-halting", NULL};
@@ -33,9 +35,16 @@ static void spawnAllWorkers() {
 
   cout << "There are this many CPUs: " << kNumCPUs << ", numbered 0 through " << kNumCPUs - 1 << "." << endl;
   for (size_t i = 0; i < kNumCPUs; i++) {
-      workers[i].sp = subprocess(workers[i].worker);
-      workers[i].available = true;
-      cout << "Worker " << workers[i].sp.pid << " is set to run on CPU " << i << "." << endl;
+
+      //workers[i].available = true;
+      //markWorkersAsAvailable(workers[i.sp.pid]);
+      //char *point = kWorkerArguments;
+      //worker(kWorkerArguments);
+      char *argv[] = {const_cast<char*>(kWorkerArguments[0]),const_cast<char*>(kWorkerArguments[1]),NULL};
+      workers[i] = worker(argv);
+      //cout << "This is to test if subprocess changed or not " << workers[i].sp.supplyfd << endl;
+      
+      cout << "Worker " << workers[i].sp.pid << " is set to run on CPU " << i << "." << " is it free? " << workers[i].available  << endl;
   }
 }
 
