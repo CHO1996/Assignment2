@@ -42,7 +42,7 @@ static size_t numWorkersAvailable = 0;
 static void markWorkersAsAvailable(int sig) {
     int check = 0;
     while(true){
-        pid_t pid = waitpid(-1, NULL, WNOHANG);
+        //pid_t pid = waitpid(-1, NULL, WNOHANG);
         for(size_t i = 0; i < kNumCPUs; i++){
             if(workers[i].sp.pid == sig){
                check++;
@@ -73,21 +73,21 @@ static void spawnAllWorkers() {
 
 // restore static keyword once you start using it, commented out to suppress compiler warning
 /* static */ size_t getAvailableWorker() {
-    while(numWorkersAvailable < 1){
-        sigset_t old;
-        sigset_t old2;
-        sigprocmask(SIG_SETMASK, &old, &old2);
-        sigsuspend();
-        signal(SIGCHLD,markWorkersAvailable);
-        for(size_t i = 0; i < kNumCPUs; i++){
-            if(workers[i].sp.pid == old2){
-                return old2;
-            }
-        }
-        sigprocmask(SIG_SETMASK,&old2,NULL);
+    //while(numWorkersAvailable < 1){
+        //sigset_t old;
+        //sigset_t old2;
+        //sigprocmask(SIG_SETMASK, &old, &old2);
+        //sigsuspend();
+        //signal(SIGCHLD,markWorkersAvailable);
+      //  for(size_t i = 0; i < kNumCPUs; i++){
+      //      if(workers[i].sp.pid == old2){
+      //          return old2;
+      //      }
+      //  }
+        //sigprocmask(SIG_SETMASK,&old2,NULL);
 
 
-    }
+    //}
   return 0;
 }
 
@@ -104,16 +104,16 @@ static void broadcastNumbersToWorkers() {
 }
 
 static void waitForAllWorkers() {
-    bool all_true;
-   while(true){
-        for(size_t i = 0; i < kNumCPUs; i++){
-            if(workers[i].avilable == false){
-                if(waitpid(workers[i].sp.pid, NULL, WIFSTOPPED) == -1) 
+    //bool all_true;
+   //while(true){
+        //for(size_t i = 0; i < kNumCPUs; i++){
+        //    if(workers[i].avilable == false){
+        //        if(waitpid(workers[i].sp.pid, NULL, WIFSTOPPED) == -1) 
                     //I think somewhere here is where I need to actually check to see if all the child is halted and available.
-            }
-        }
+        //    }
+        //}
 
-   }
+   //}
 }
 
 static void closeAllWorkers() {
@@ -122,7 +122,7 @@ static void closeAllWorkers() {
         close(workers[i].sp.pid);
         workers[i].sp.supplyfd = kNotInUse;
         workers[i].sp.ingestfd = kNotInUse;
-        numWorkersAvilable--;
+        numWorkersAvailable--;
     }
 }
 
