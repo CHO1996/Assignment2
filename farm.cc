@@ -10,6 +10,21 @@
 #include <sched.h>
 #include "subprocess.h"
 
+//signals
+//{atomic}
+//
+//sigprocmask(SIG_SETMASK, &old, &old2);
+//
+//sigsuspend()
+//
+//~some signal~
+//
+//handle the signal
+//
+//sigprocmask(SIG_SETMASK, &old2, ...)
+//
+//{/atomic} 
+
 using namespace std;
 
 struct worker {
@@ -21,35 +36,58 @@ struct worker {
 
 static const size_t kNumCPUs = sysconf(_SC_NPROCESSORS_ONLN);
 // restore static keyword once you start using these, commented out to suppress compiler warning
-/* static */ vector<worker> workers(kNumCPUs);
-/* static */ size_t numWorkersAvailable = 0;
+static vector<worker> workers(kNumCPUs);
+static size_t numWorkersAvailable = 0;
 
 static void markWorkersAsAvailable(int sig) {
-
+    int check = 0;
+    while(true){
+        pid_t pid = waitpid(-1, NULL, WNOHANG);
+        for(size_t i = 0; i < kNumCPUs; i++){
+            if(workers[i].sp.pid == sig){
+               check++;
+               workers[i].available = true;
+               numWorkersAvailable++;
+            }
+        }
+        //cout << " This is pid for waitpid : " << pid << endl;
+        if(check == 0){
+            break;
+            //cout << "This is the sig value : " << sig << endl;
+            //cout << "Something went wrong with markWorkersAsAvailable" << endl;
+        }
+    }
 }
 
 // restore static keyword once you start using it, commented out to suppress compiler warning
-/* static */ const char *kWorkerArguments[] = {"./factor.py", "--self-halting", NULL};
+static const char *kWorkerArguments[] = {"./factor.py", "--self-halting", NULL};
 static void spawnAllWorkers() {
-    //do something here
 
   cout << "There are this many CPUs: " << kNumCPUs << ", numbered 0 through " << kNumCPUs - 1 << "." << endl;
   for (size_t i = 0; i < kNumCPUs; i++) {
-
-      //workers[i].available = true;
-      //markWorkersAsAvailable(workers[i.sp.pid]);
-      //char *point = kWorkerArguments;
-      //worker(kWorkerArguments);
       char *argv[] = {const_cast<char*>(kWorkerArguments[0]),const_cast<char*>(kWorkerArguments[1]),NULL};
       workers[i] = worker(argv);
-      //cout << "This is to test if subprocess changed or not " << workers[i].sp.supplyfd << endl;
-      
-      cout << "Worker " << workers[i].sp.pid << " is set to run on CPU " << i << "."  << endl;
+      cout << "Worker " << workers[i].sp.pid << " is set to run on CPU " << i << "." << endl;
   }
 }
 
 // restore static keyword once you start using it, commented out to suppress compiler warning
 /* static */ size_t getAvailableWorker() {
+    while(numWorkersAvailable < 1){
+        sigset_t old;
+        sigset_t old2;
+        sigprocmask(SIG_SETMASK, &old, &old2);
+        sigsuspend();
+        signal(SIGCHLD,markWorkersAvailable);
+        for(size_t i = 0; i < kNumCPUs; i++){
+            if(workers[i].sp.pid == old2){
+                return old2;
+            }
+        }
+        sigprocmask(SIG_SETMASK,&old2,NULL);
+
+
+    }
   return 0;
 }
 
@@ -65,9 +103,28 @@ static void broadcastNumbersToWorkers() {
   }
 }
 
-static void waitForAllWorkers() {}
+static void waitForAllWorkers() {
+    bool all_true;
+   while(true){
+        for(size_t i = 0; i < kNumCPUs; i++){
+            if(workers[i].avilable == false){
+                if(waitpid(workers[i].sp.pid, NULL, WIFSTOPPED) == -1) 
+                    //I think somewhere here is where I need to actually check to see if all the child is halted and available.
+            }
+        }
 
-static void closeAllWorkers() {}
+   }
+}
+
+static void closeAllWorkers() {
+    for(size_t i = 0; i < kNumCPUs; i++){
+        //somehow I need to signal EOF to each workers 
+        close(workers[i].sp.pid);
+        workers[i].sp.supplyfd = kNotInUse;
+        workers[i].sp.ingestfd = kNotInUse;
+        numWorkersAvilable--;
+    }
+}
 
 int main(int argc, char *argv[]) {
   signal(SIGCHLD, markWorkersAsAvailable);
